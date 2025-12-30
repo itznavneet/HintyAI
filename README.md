@@ -1,16 +1,28 @@
-# React + Vite
+# HintyAI – Practice-Only Learning Assistant
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+HintyAI is a Chrome extension that provides **progressive, intuition-based AI hints**
+for **Codeforces practice problems only**.
 
-Currently, two official plugins are available:
+## 🚫 Ethics & Integrity
+- ❌ Disabled during live contests
+- ❌ Disabled during virtual contests
+- ❌ No solutions or code generation
+- ✅ Practice-only learning tool
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🧠 How it works
+- Popup UI built with React
+- Content script enforces contest blocking
+- Backend securely generates hints using OpenAI
+- Strict hint limits to encourage independent thinking
 
-## React Compiler
+## 🛠 Tech Stack
+- React + Vite
+- Chrome Extensions (Manifest V3)
+- Node.js + Express
+- OpenAI API
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+## ⚠️ Setup
+```bash
+npm install
+# add OPENAI_API_KEY in .env
+npm run dev
