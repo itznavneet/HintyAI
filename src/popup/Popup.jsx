@@ -19,6 +19,11 @@ export default function Popup() {
         if (level > MAX_HINTS) {
             return null; // No AI call beyond limit
         }
+        const tagContext =
+            prob.tags && prob.tags.length > 0
+                ? `Problem tags: ${prob.tags.join(", ")}`
+                : "Problem tags: unknown";
+
 
         const hintGuidance = {
             1: "Explain how to think about the problem using constraints. Do not mention any trick yet.",
@@ -26,12 +31,13 @@ export default function Popup() {
             3: "Guide toward the algorithmic approach without giving steps.",
             4: "Give a near-solution hint focusing on how to implement efficiently."
         };
-
         const prompt = `
 You are a strong Codeforces contestant (1600–1800).
 
 Problem title:
 ${prob.title}
+
+${tagContext}
 
 Problem statement:
 ${prob.statement}
@@ -41,19 +47,19 @@ Hint level: ${level}
 Guidance for this hint:
 ${hintGuidance[level]}
 
-Strict rules:
+Rules:
 - Max 2 short sentences
 - No formulas
-
 - No LaTeX
 - No code
-- No explanation
+- No step-by-step solution
 - Do NOT repeat earlier hints
-- Be specific, not generic
-- Focus on what to think about next
+- Use tags to guide thinking direction
+- Focus on what concept to think about next
 
 Output only the hint text.
 `;
+
 
         const res = await fetch("http://localhost:3001/hint", {
             method: "POST",

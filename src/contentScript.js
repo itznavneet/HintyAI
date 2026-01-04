@@ -1,4 +1,11 @@
 /* global chrome */
+function extractTags() {
+  const tagElements = document.querySelectorAll(".tag-box .tag");
+
+  return Array.from(tagElements).map(tag =>
+    tag.innerText.trim().toLowerCase()
+  );
+}
 
 function isContestBlocked() {
   const contestState = document.querySelector(".contest-state-regular");
@@ -22,8 +29,15 @@ function extractProblem() {
   const statement =
     document.querySelector(".problem-statement")?.innerText || "";
 
-  return { title, statement };
+  const tags = extractTags();
+
+  return {
+    title,
+    statement,
+    tags
+  };
 }
+
 
 //sendMessage ko response bhejega....
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
@@ -33,12 +47,14 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       return;
     }
 
-    const { title, statement } = extractProblem();
+    const { title, statement, tags } = extractProblem();
     //this is what getting extract from tab
     sendResponse({
       blocked: false,
       title,
-      statement
+      statement,
+      tags
     });
+
   }
 });
