@@ -1,146 +1,170 @@
-# NoteNest
+# HintyAI
 
-NoteNest is a full-stack event reminder app built with React, Vite, Express, and MongoDB. Users can register, log in, create personal events, view upcoming or past items, and delete events they no longer need.
+HintyAI is a Chrome extension for Codeforces practice that gives short, progressive AI hints instead of full solutions. It is designed to support learning while still making you do the problem-solving work yourself.
 
-## Features
+## What It Does
 
-- User registration and login with JWT-based authentication
-- Personal event dashboard
-- Create events with date, time, type, and optional remark
-- View event history with past/upcoming styling
-- Delete events securely
-- MongoDB persistence with Mongoose
+- Reads the current Codeforces problem from the active tab
+- Detects whether the page is in practice mode or part of a contest/virtual contest
+- Generates up to 4 increasingly helpful hints
+- Stores hint progress per tab/session using Chrome session storage
+- Calls a small local backend that forwards prompt requests to OpenAI
+
+## Practice-Only Guardrails
+
+- Disabled during live contests
+- Disabled during virtual contests
+- Intended for practice mode only
+- Hints are short and non-solution-oriented
+- No code output is requested from the model
+
+## How It Works
+
+### Extension flow
+
+1. Open a Codeforces problem page.
+2. Click the extension popup and choose `Get Hint`.
+3. The content script extracts:
+   - problem title
+   - full statement text
+   - visible tags
+4. The popup sends that data to a local backend at `http://localhost:3001/hint`.
+5. The backend requests a hint from OpenAI and returns it to the popup.
+6. You can ask for the next hint until the 4-hint limit is reached.
+
+### Main parts of the project
+
+- `src/popup/Popup.jsx`
+  Popup UI and hint flow logic
+- `src/contentScript.js`
+  Extracts Codeforces problem data and blocks usage outside practice mode
+- `src/manifest.js`
+  Chrome extension Manifest V3 config
+- `hintyai-backend/index.js`
+  Express backend that calls the OpenAI API
 
 ## Tech Stack
 
-- Frontend: React 19, Vite, React Router, Axios, React Toastify
-- Backend: Node.js, Express 5, MongoDB, Mongoose
-- Authentication: JWT, bcryptjs
+- React 19
+- Vite
+- `@crxjs/vite-plugin`
+- Chrome Extension Manifest V3
+- Node.js + Express
+- OpenAI API
 
 ## Project Structure
 
 ```text
-NoteNest/
-|-- client/   # React frontend
-|-- server/   # Express API and MongoDB models
-`-- README.md
+CF-HInt/
+|- src/
+|  |- manifest.js
+|  |- contentScript.js
+|  |- popup/
+|     |- Popup.jsx
+|     |- popup.html
+|     |- popup.css
+|     |- main.jsx
+|- hintyai-backend/
+|  |- index.js
+|  |- package.json
+|- dist/
+|- package.json
 ```
 
-## Getting Started
+## Setup
 
-### 1. Clone the repository
+### 1. Install extension dependencies
 
 ```bash
-git clone <your-repo-url>
-cd NoteNest
+npm install
 ```
 
-### 2. Install dependencies
+### 2. Install backend dependencies
 
 ```bash
-cd client
-npm install
-cd ../server
+cd hintyai-backend
 npm install
 ```
 
-## Environment Variables
+### 3. Create backend environment file
 
-Create a `.env` file inside `server/`:
+Create `hintyai-backend/.env`:
 
 ```env
-MONGODB_URI=your_mongodb_connection_string
-JWT_SECRET_KEY=your_jwt_secret
-PORT=5000
+OPENAI_API_KEY=your_openai_api_key_here
 ```
 
-## Running the App
+### 4. Start the backend
 
-Open two terminals.
-
-### Terminal 1: start the backend
+From `hintyai-backend/`:
 
 ```bash
-cd server
-node server.js
+node index.js
 ```
 
-### Terminal 2: start the frontend
+The backend listens on `http://localhost:3001`.
+
+### 5. Build the extension
+
+From the project root:
 
 ```bash
-cd client
+npm run build
+```
+
+This generates the unpacked extension in `dist/`.
+
+### 6. Load it in Chrome
+
+1. Open `chrome://extensions`
+2. Enable `Developer mode`
+3. Click `Load unpacked`
+4. Select the project's `dist` folder
+
+## Usage
+
+1. Open a Codeforces problem in practice mode.
+2. Click the HintyAI extension icon.
+3. Press `Get Hint`.
+4. Use `Next Hint` if you want a stronger nudge.
+5. Stop before the limit if you want to keep the challenge intact.
+
+## Current Behavior
+
+- Host access is limited to `https://codeforces.com/*`
+- State is saved with `chrome.storage.session`
+- Hint history is tied to the active tab URL and tab id
+- Maximum hint count is `4`
+- Contest pages are blocked in the content script before hint generation starts
+
+## Scripts
+
+From the root:
+
+```bash
 npm run dev
+npm run build
+npm run lint
+npm run preview
 ```
 
-Frontend default URL:
+Note: for actual Chrome loading, `npm run build` and loading `dist/` is the reliable path.
 
-```text
-http://localhost:5173
-```
+## Limitations
 
-Backend default URL:
-
-```text
-http://localhost:5000
-```
-
-## API Endpoints
-
-### Auth
-
-- `POST /api/auth/register` - register a new user
-- `POST /api/auth/login` - log in and receive a token
-
-### Events
-
-- `POST /api/events/add` - create an event
-- `GET /api/events/my-events` - fetch logged-in user's events
-- `DELETE /api/events/delete/:id` - delete an event by ID
-
-All event routes require this header:
-
-```text
-Authorization: Bearer <token>
-```
-
-## Notes for Local Development
-
-- The frontend currently uses a hardcoded `BASE_URL` in [client/src/config.js](/d:/Sigma%20Web/Full-stack-project/NoteNest/client/src/config.js:1) that points to the deployed backend first.
-- If you want to use the local backend while developing, update that file to `http://localhost:5000` or switch it to an environment-based config.
-
-## Available Scripts
-
-### Client
-
-- `npm run dev` - start Vite dev server
-- `npm run build` - build production frontend
-- `npm run preview` - preview production build
-- `npm run lint` - run ESLint
-
-### Server
-
-- `node server.js` - start the API server
-
-## Deployment
-
-This project appears to be deployed with:
-
-- Frontend: Render
-- Backend: Render
-
-Configured URLs found in the codebase:
-
-- Frontend: `https://notenest-frontend-utsu.onrender.com`
-- Backend: `https://notenest-blpo.onrender.com`
+- The backend URL is currently hardcoded to `http://localhost:3001/hint`
+- Contest detection depends on current Codeforces page markup
+- There are no automated tests yet
+- The backend currently uses `gpt-4o-mini`
 
 ## Future Improvements
 
-- Add edit/update event support
-- Add validation on the backend
-- Add tests for API and UI flows
-- Move frontend API URL to environment variables
-- Add server `dev` script with `nodemon`
+- Add a proper backend start script
+- Add retry/error handling for network failures
+- Improve contest/practice detection robustness
+- Add configurable hint tone and depth
+- Add tests for content extraction and popup flow
 
 ## License
 
-This project is available for personal and educational use.
+This project includes a `LICENSE` file in the repository root.
